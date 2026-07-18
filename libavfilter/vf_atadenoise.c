@@ -409,12 +409,10 @@ static int config_input(AVFilterLink *inlink)
             s->dsp.filter_row[p] = s->algorithm == PARALLEL ? fweight_row16 : fweight_row16_serial;
     }
 
-    s->thra[0] = s->fthra[0] * (1 << depth) - 1;
-    s->thra[1] = s->fthra[1] * (1 << depth) - 1;
-    s->thra[2] = s->fthra[2] * (1 << depth) - 1;
-    s->thrb[0] = s->fthrb[0] * (1 << depth) - 1;
-    s->thrb[1] = s->fthrb[1] * (1 << depth) - 1;
-    s->thrb[2] = s->fthrb[2] * (1 << depth) - 1;
+    for (int p = 0; p < s->nb_planes; p++) {
+        s->thra[p] = s->fthra[p] * (1 << depth) - 1;
+        s->thrb[p] = s->fthrb[p] * (1 << depth) - 1;
+    }
 
     for (int p = 0; p < s->nb_planes; p++) {
         float sigma = s->radius * s->sigma[p];
@@ -473,12 +471,10 @@ static int filter_frame(AVFilterLink *inlink, AVFrame *buf)
         for (i = 0; i < s->size; i++) {
             AVFrame *frame = ff_bufqueue_peek(&s->q, i);
 
-            s->data[0][i] = frame->data[0];
-            s->data[1][i] = frame->data[1];
-            s->data[2][i] = frame->data[2];
-            s->linesize[0][i] = frame->linesize[0];
-            s->linesize[1][i] = frame->linesize[1];
-            s->linesize[2][i] = frame->linesize[2];
+            for (int p = 0; p < s->nb_planes; p++) {
+                s->data[p][i] = frame->data[p];
+                s->linesize[p][i] = frame->linesize[p];
+            }
         }
 
         td.in = in; td.out = out;
