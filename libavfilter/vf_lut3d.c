@@ -651,11 +651,11 @@ static int parse_dat(AVFilterContext *ctx, FILE *f)
 
         NEXT_LINE(skip_line(line));
     }
-    size2 = size * size;
-
     ret = allocate_3dlut(ctx, size, 0);
     if (ret < 0)
         return ret;
+
+    size2 = size * size;
 
     for (k = 0; k < size; k++) {
         for (j = 0; j < size; j++) {
@@ -683,11 +683,13 @@ static int parse_cube(AVFilterContext *ctx, FILE *f)
         if (!strncmp(line, "LUT_3D_SIZE", 11)) {
             int ret, i, j, k;
             const int size = strtol(line + 12, NULL, 0);
-            const int size2 = size * size;
+            int size2;
 
             ret = allocate_3dlut(ctx, size, 0);
             if (ret < 0)
                 return ret;
+
+            size2 = size * size;
 
             for (k = 0; k < size; k++) {
                 for (j = 0; j < size; j++) {
