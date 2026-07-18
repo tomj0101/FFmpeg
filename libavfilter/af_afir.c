@@ -591,6 +591,20 @@ static int config_output(AVFilterLink *outlink)
 
     s->format = outlink->format;
     s->nb_channels = outlink->ch_layout.nb_channels;
+
+    /* The IR is indexed per input channel unless it is mono (one2many), so an
+     * IR with more than one but fewer than nb_channels channels would cause
+     * out-of-bounds reads of its extended_data in convert_coeffs(). */
+    for (int i = 1; i < ctx->nb_inputs; i++) {
+        const int ir_channels = ctx->inputs[i]->ch_layout.nb_channels;
+        if (ir_channels != 1 && ir_channels != s->nb_channels) {
+            av_log(ctx, AV_LOG_ERROR,
+                   "Number of channels of IR input %d (%d) must be 1 or "
+                   "equal to the number of input channels (%d).\n",
+                   i, ir_channels, s->nb_channels);
+            return AVERROR(EINVAL);
+        }
+    }
     s->ch_gain = av_calloc(ctx->inputs[0]->ch_layout.nb_channels, sizeof(*s->ch_gain));
     s->loading = av_calloc(ctx->inputs[0]->ch_layout.nb_channels, sizeof(*s->loading));
     if (!s->loading || !s->ch_gain)
