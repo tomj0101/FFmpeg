@@ -61,7 +61,8 @@ av_cold void ff_gblur_init_x86(GBlurContext *s)
     }
     if (EXTERNAL_AVX2(cpu_flags)) {
         s->stride = EXTERNAL_AVX512(cpu_flags) ? 16 : 8;
-        s->localbuf = av_malloc(s->stride * sizeof(float) * s->planewidth[0] * s->planeheight[0]);
+        s->localbuf = av_malloc_array(s->stride * (size_t)s->planewidth[0],
+                                      s->planeheight[0] * sizeof(float));
         if (!s->localbuf)
             return;
 
